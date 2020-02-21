@@ -1,0 +1,37 @@
+PHP 社区是庞大和多样的，由数不清的库、框架和组件组成。对于 PHP 开发人员来说，选择其中的几个并将它们组合进一个项目是很常见的事。为了能让开发
+人员为他们的项目混合和匹配各种各样的库，让 PHP 代码遵循（尽可能的接近）一种通用的代码风格是很重要的。
+
+框架互操作性组 已经提出并批准了一系列的风格建议。并不是所有的风格建议都和代码风格有关，但是 PSR-1、PSR-12 和 PSR-4 是和代码风格有关的。这
+些建议只是许多项目所采用的一套规则，比如 Drupal、Zend、Symfony、Laravel、CakePHP、phpBB、AWS SDK、FuelPHP、Lithium 等。你可以将它
+们用于你自己的项目，或者继续使用你自己的个人风格。
+
+理想情况下，你应该遵循某个知名的规范去编写 PHP 代码。这可以是 PSRs 的任意组合，也可以是 PEAR 或 Zend 制定的编程规范中的某一个。这意味着其
+他的开发人员可以轻松的阅读和使用你的代码，而且实现这种组件的应用程序，即使使用了大量的第三方代码，也能具有一致性。
+    阅读 PSR-1
+    阅读 PSR-12
+    阅读 PSR-4
+    阅读 PEAR 编程规范
+    阅读 Symfony 编程规范
+
+你可以使用 PHP_CodeSniffer 去检查代码是否符合这些建议中的任何一个，而且文本编辑器比如 Sublime Text 的插件可以给出一个实时的反馈。
+
+通过使用下面的工具中的一个，你能够自动的修复代码布局：
+    一个是 PHP Coding Standards Fixer（PHP 编程规范修复器），它有一个经过很好测试的代码基。
+    此外，PHP_CodeSniffer 中包含的 PHP Code Beautifier and Fixer（PHP 代码美化器和修复器） 工具也可相应地用于调整你的代码。
+
+而且你能够从 shell 手动的运行 phpcs:
+    phpcs -sw --standard=PSR1 file.php
+
+它会显示错误并且描述如何修复它们。在 git 钩子中包含这个命令也是很有帮助的。这样的话，违反了所选规范的分支就不能进入仓库，直到这些违规被修复。
+
+如果你有 PHP_CodeSniffer，那么通过 PHP Code Beautifier and Fixer（PHP 代码美化器和修复器），你就能够自动的修复它报告的代码布局问题。
+    phpcbf -w --standard=PSR1 file.php
+个人补充：通过 PHP_CodeSniffer 的 phpcs 命令可以检查出代码布局问题，然后 PHP_CodeSniffer 还自带了 phpcbf 工具，使用它就可以修复
+phpcs 检查出来的大多数问题。只能修复大多数问题是因为有些问题只能人手动修，工具是修不了的。
+
+另外一个选项是使用 PHP Coding Standards Fixer（PHP 编程规范修复器）。它将显示被修复错误前的代码结构中有哪种错误。
+    php-cs-fixer fix -v --rules=@PSR1 file.php
+
+所有符号名称和代码基础结构都首选英文。注释可以用任何一种语言编写，以便于当前和将来在此代码基上工作的人员阅读。
+
+最后，对于编写干净的 PHP 代码来说，有一个很好的补充资源是 Clean Code PHP 。
