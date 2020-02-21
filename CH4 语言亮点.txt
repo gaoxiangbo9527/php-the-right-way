@@ -9,3 +9,27 @@
         了解 特性
 
     函数式编程（个人补充：即面向过程编程）
+
+Xdebug
+    软件开发中最有用的工具之一是一个适当的调试器。它允许你跟踪代码的执行并且监视堆栈的内容。Xdebug，PHP 的调试器，可以被各种 IDE 利用去提
+    供断点和堆栈检查。它还允许诸如 PHPUnit 和 KCacheGrind 等工具去执行代码覆盖率分析和代码分析。
+
+    如果你发现自己陷入了一种困境，太乐意求助于 var_dump()/print_r()，而且你始终找不到解决方法 —— 你可能需要使用调试器了。
+
+    安装 Xdebug 可能比较棘手，但是它最重要的特性之一是“远程调试” —— 如果你在本地开发代码而且然后在一个虚拟机中或者在另一台服务器上测试它，
+    远程调试会是那个你想要立即启用的特性。
+
+    传统上，你将使用这些值修改你的 Apache 的 VHost 或 .htaccess 文件：
+        php_value xdebug.remote_host 192.168.?.?
+        php_value xdebug.remote_port 9000
+
+    “远程主机”和“远程端口”将对应上你的本地计算机和你配置 IDE 去监听的端口。然后只需将 IDE 置于“监听连接”模式，并加载这个 URL ：
+        http://your-website.example.com/index.php?XDEBUG_SESSION_START=1
+
+    现在你的 IDE 将在脚本执行时截获当前的状态，允许你设置断点并探测内存中的值。
+
+    图形化调试器使单步调试、检查变量和根据实时的运行时 eval 代码变得非常容易。许多 IDE 都内置的或基于插件的支持了 Xdebug 的图形化调试。
+    MacGDBp 是针对 Mac 的一个免费的、开源的、单机的 Xdebug GUI 。
+
+    了解关于 Xdebug 的更多信息
+    了解关于 MacGDBp 的更多信息
