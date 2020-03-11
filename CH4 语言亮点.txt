@@ -37,6 +37,42 @@
     阅读 SPL
     Lynda.com 上的 SPL 视频课程（付费的）
 
+命令行接口
+    PHP 是为编写 web 应用程序而被创造的，但是对脚本化的命令行接口（CLI）程序也很有用。CLI PHP 程序有助于自动化常见的任务，比如测试、部署
+    和应用管理。
+
+    CLI PHP 程序非常强大，因为你能够直接使用应用程序的代码，而不必为其创建和保护一个 web GUI 。只要确保不要将你的 CLI PHP 脚本放到你的公
+    开的 web 根目录中!
+
+    尝试从你的命令行中运行 PHP：
+        > php -i
+
+    -i 选项将会向 phpinfo() 函数那样打印你的 PHP 配置。
+
+    -a 选项提供一个交互式 shell，类似 ruby 的 IRB 或者 python 的交互式 shell。还有许多其他有用的 命令行选项 。
+
+    让我们写一个简单的“Hello, $name” CLI 程序。为了尝试它，创建一个名为 hello.php 的文件，内容如下。
+        <?php
+        if ($argc !== 2) {
+            echo "Usage: php hello.php <name>.\n";
+            exit(1);
+        }
+        $name = $argv[1];
+        echo "Hello, $name\n";
+
+    PHP 会根据运行脚本时带的参数设置两个特殊的变量。$argc 是一个包含了参数数量的整型变量并且 $argv 是一个包含了每个参数的值的数组变量。第
+    一个参数总是有的 PHP 脚本文件的名称，在本例中，即 hello.php 。
+
+    和一个非零数字一起使用的 exit() 表达式会让 shell 知道命令失败了。常用的退出码可以在 这里 找到。
+
+    为了运行我们上面的那个脚本，从命令行：
+        > php hello.php
+        Usage: php hello.php <name>
+        > php hello.php world
+        Hello, world
+
+    了解如何从命令行运行 PHP 。
+
 Xdebug
     软件开发中最有用的工具之一是一个适当的调试器。它允许你跟踪代码的执行并且监视堆栈的内容。Xdebug，PHP 的调试器，可以被各种 IDE 利用去提
     供断点和堆栈检查。它还允许诸如 PHPUnit 和 KCacheGrind 等工具去执行代码覆盖率分析和代码分析。
