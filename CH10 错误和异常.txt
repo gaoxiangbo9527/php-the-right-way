@@ -1,0 +1,148 @@
+错误
+    在许多“重度异常”的编程语言中，无论什么时候，任何事情出错了都会抛出一个异常。这确实是一种可行的方法，但 PHP 是一种“轻度异常”编程语言。虽
+    然它确实有异常而且更多的核心开始在处理对象时使用它们，但是 PHP 本身的大部分除非遇到了一个致命错误，否则仍将尝试继续处理，而不管发生了什
+    么。
+    个人补充：即目前 PHP 自身大部分情况下还是在使用错误处理，而不是异常。
+
+    例如：
+        $ php -a
+        php > echo $foo;
+        Notice: Undefined variable: foo in php shell code on line 1
+
+    这只是一个通知错误，因此 PHP 将愉快地继续下去。对于那些来自“重度异常”语言的人来说，这可能会让他们感到困惑，因为比方说在 Python 中，引用
+    一个丢失的变量将会抛出一个异常：
+        $ python
+        >>> print foo
+        Traceback (most recent call last):
+          File "<stdin>", line 1, in <module>
+        NameError: name 'foo' is not defined
+
+    唯一真正的区别是 Python 会因为任何小事而崩溃，这样开发人员就可以非常确定任何潜在的问题或边界情况都被捕获了，而 PHP 将继续处理，除非发生
+    极端情况，此时，它将抛出一个错误并且报告它。
+
+    错误严重性
+        PHP 有几种错误严重级别。最常见的三种消息类型是错误、通知和警告。它们有不同的严重级别；E_ERROR、E_NOTICE 和 E_WARNING 。错误是运
+        行时的致命错误并且通常是由代码中的错误引起的，需要进行修复，因为它们会导致 PHP 停止执行。通知是咨询性消息，它是由脚本执行期间可能或
+        者可能没引发问题的代码所引发的，执行没有被停止。警告是非致命错误，脚本的执行将不会被停止。
+
+        编译时报告的另一种类型的错误消息是 E_STRICT 消息。这些消息用于建议对你代码进行更改，以帮助确保与即将发布的 PHP 版本保持最佳的互操
+        作性和向前兼容性。
+
+    改变 PHP 的错误报告行为
+        错误报告可以通过使用 PHP 设置项和/或 PHP 函数调用来改变。使用内置的 PHP 函数 error_reporting() 你可以通过传递一个预定义的错误
+        级别常量来设置脚本执行期间的错误级别，这意味着如果你只想看到错误和警告，而不想看到通知，那么你可以配置：
+            <?php
+            error_reporting(E_ERROR | E_WARNING);
+
+        你也可以控制是否在屏幕上显示（适合开发）或隐藏错误，以及记录日志（适合生产）。有关这方面的更多信息，请参阅 错误报告 部分。
+
+    行内错误抑制
+        你也可以通过错误控制操作符 @ 告诉 PHP 去抑制特定的错误。你把这个操作符放在一个表达式的开头，任何由表达式直接导致的错误都会沉默。
+            <?php
+            echo @$foo['bar'];
+
+        如果 $foo['bar'] 存在，将会输出它；但是如果变量 $foo 或者 'bar' 键不存在，则只会返回 null ，且不会打印任何内容。不使用错误控制
+        操作符，这个表达式将会创建一条 PHP Notice: Undefined variable: foo or PHP Notice: Undefined index: bar 错误。
+
+        这看起来可能是一个好主意，但是存在一些不受欢迎的权衡。与不使用 @ 的表达式相比，PHP 处理使用 @ 的表达式的性能会更低。过早的优化可能
+        是所有编程争论的根源，但是如果性能对你的应用程序/库特别重要，那么理解错误控制操作符的性能影响就非常的重要。
+
+        其次，错误控制操作符完全地吞下了错误。错误不会被显示，并且错误也不会被发送到错误日志。而且，常规/生产 PHP 系统无法关闭错误控制操作
+        符。虽然你可能是正确的，你看到的错误是无害的，但是，一个不同的、更有害的错误也会保持沉默。
+
+        如果有一种可以避免错误抑制操作符的方法，你应该尝试它。例如，可以像这样重写上面的代码：
+            <?php
+            // Null Coalescing Operator
+            echo $foo['bar'] ?? '';
+
+        错误抑制可能是有意义的一种情况是 fopen() 无法找到要加载的文件。你可以在尝试加载文件之前检查该文件是否存在，但是如果在检查之后、
+        fopen() 之前删除了该文件（这听起来不太可能，但它确实可能发生），那么 fopen() 将会返回 false 并且抛出一个错误。这可能是 PHP 应该
+        去解决的问题，但确实是错误抑制似乎是惟一有效的解决方案的情况。
+
+        前面我们提到过，在常规 PHP 系统中不可能关闭错误控制操作符。然而，Xdebug 有一个 xdebug.scream ini 设置项，它会禁用错误控制操作符
+        。你可以按照下面在 php.ini 文件去设置它。
+            xdebug.scream = On
+
+        你也能在运行时通过 ini_set 函数设置这个值
+            <?php
+            ini_set('xdebug.scream', '1')
+
+        PHP 扩展 Scream 提供了和 Xdebug 相似的功能，只是 Scream 的 ini 设置被命名为 scream.enabled 。
+
+        当你调试代码并且怀疑一条有用的错误信息被抑制时，这是最有用的。小心的使用 scream，并且只把它当做临时的调试工具。如果把错误控制操作符
+        禁用，有许多 PHP 库代码可能将无法工作。
+
+        错误控制操作符
+        SitePoint
+        Xdebug
+        Scream
+
+    ErrorException
+        PHP 完全可以成为一种“重度异常”的编程语言，并且只需要几行代码就可以完成切换。基本上，使用 ErrorException 类你就能够把错误作为异常
+        抛出，ErrorException 类继承了 Exception 类。
+
+        这是一种被大量现代框架，比如 Symfony 和 Laravel，实现的一种常见实践。在调试模式（或开发模式）中，这些框架都会显示一个漂亮、干净的
+        堆栈跟踪。
+
+        还有一些包可以用于更好的处理和报告错误以及异常。比如 Whoops! ，默认的 Laravel 安装有自带它，并且可以在任何框架中使用。
+
+        在开发中，通过把错误作为异常抛出，你能比通常的结果更好地处理它们，并且如果在开发期间看到了一个异常，你就可以将其包装到一条 catch 语
+        句中，具体指明如何处理这种情况。每个你立即捕获的异常都会使你的应用程序更加健壮。
+
+        有关这方面的更多信息，以及如何在错误处理中使用 ErrorException 的详细信息，可以在 ErrorException类 中找到。
+
+        错误控制操作符
+        用于错误处理的预定义常量
+        error_reporting()
+        报告
+
+异常
+    异常是最流行的编程语言的一个标准部分，但是它们经常被 PHP 程序员忽视。像 Ruby 这样的语言是极其重度异常的，因此不论什么时候，只要事情出错
+    ，例如一个 HTTP 请求失败了，或者一个数据库查询出错了，或者甚至如果不能找到某个图片资源，Ruby（或正在使用的 gems）都将会抛出一个异常到
+    屏幕，这意味着你立即就会知道有出错了。
+
+    PHP 自身在这方面相当松散，并且调用 file_get_contents() 通常只会得到一个 FALSE 和一个警告。许多较老的 PHP 框架，比如 CodeIgniter，
+    只会返回一个 false，将一条消息记录到它们的专用日志中，可能还会让你使用一个 $this->upload->get_error() 这样的方法去查看出错的地方。
+    这里的问题是，你必须去查找一个错误并且检查文档以查看这个类的错误方法是什么，而不是让它变得非常明显。
+
+    另一个问题是当类自动向屏幕抛出一个错误并退出处理时。当你这样做时，您阻止了另一个开发人员动态的处理该错误。应该抛出异常以使开发人员意识到
+    一个错误；然后他们可以选择如何处理这个问题。例如：
+        <?php
+        $email = new Fuel\Email;
+        $email->subject('My Subject');
+        $email->body('How the heck are you?');
+        $email->to('guy@example.com', 'Some Guy');
+
+        try
+        {
+            $email->send();
+        }
+        catch(Fuel\Email\ValidationFailedException $e)
+        {
+            // The validation failed
+        }
+        catch(Fuel\Email\SendingFailedException $e)
+        {
+            // The driver could not send the email
+        }
+        finally
+        {
+            // Executed regardless of whether an exception has been thrown, and before normal execution resumes
+        }
+
+    SPL 异常
+        通用的 Exception 类为开发人员提供的调试上下文非常少；但是，为了解决这个问题，可以通过子类化通用的 Exception 类去创建一个专用的异
+        常类型：
+            <?php
+            class ValidationException extends Exception {}
+
+        这意味着你能够添加多个 catch 块并且以不同的方式处理不同的异常。这可能会导致创建了许多自定义异常，其中一些可以通过使用 SPL 扩展中提
+        供的 SPL 异常来避免。
+
+        例如，如果你使用了 __call() 魔术方法并且请求了一个无效的方法，相较于抛出一个含糊不清的标准异常，你可以为此创建一个自定义异常，比如
+        你可以 throw new BadMethodCallException; 。
+
+        阅读 异常
+        阅读 SPL 异常
+        在 PHP 中嵌套异常
+        PHP 5.3 中异常的最佳实践（网页已经打不开了）

@@ -1,0 +1,55 @@
+
+
+
+错误报告
+    记录错误日志对于查找你的应用程序中的问题点非常有用，但是它也能把关于你的应用程序结构方面的信息暴露给外界。为了有效地保护你的应用程序不受
+    输出这些消息可能引起的问题的影响，你需要在开发和生产（线上）中以不同的方式配置你的服务器。
+
+    开发
+        为了在开发期间显示每一条可能的错误，在你的 php.ini 中配置下面这些设置项：
+            display_errors = On
+            display_startup_errors = On
+            error_reporting = -1
+            log_errors = On
+
+        php.net —— 传递值 -1 将会显示每一种可能的错误，即使当新的错误和常量被添加到将来的 PHP 版本中。从 PHP 5.4 开始，常量 E_ALL 的行
+        为也是这样。
+
+        E_STRICT 错误级别常量是在 5.3.0 被引入的并且不是 E_ALL 的一部分，然而在 5.4.0 中，它成为了 E_ALL 的一部分。这意味着什么？从在
+        5.3 版本中报告每一种可能的错误的角度来看，它意味着你必须使用 -1 或 E_ALL | E_STRICT 。
+
+        报告每一种可能的错误，按 PHP 版本
+            < 5.3 -1 或 E_ALL
+              5.3 -1 或 E_ALL | E_STRICT
+            > 5.3 -1 或 E_ALL
+
+        个人补充：上面说了这么多，无非就是说 -1 理论上要比 E_ALL 好，但是现在很少会有项目还在使用这么低的版本，况且 PHP 现在也在“重异常”
+        化，将来很难再添加新的错误级别了，而且就算要加，也不太可能再把新的错误级别算在 E_ALL 以外。总之没必要纠结 -1 还是 E_ALL 。
+
+    生产
+        为了在你的生产环境中隐藏错误，将你的 php.ini 配置为：
+            display_errors = Off
+            display_startup_errors = Off
+            error_reporting = E_ALL
+            log_errors = On
+
+        个人补充：
+            php.ini 中建议生产中把 error_reporting 设置为 E_ALL & ~E_DEPRECATED & ~E_STRICT。生产中到底该使用哪种设置，值得斟酌。
+
+            使用 E_ALL
+                如果你没有及时修复会引发 E_DEPRECATED 或 E_STRICT 错误的代码，那么这两种日志就会大量出现在日志中，因为每次调用那段代码
+                都会触发，在高并发系统中这种日志量可能造成很严重的后果。好处就是你会意识到代码中存在会引发 E_DEPRECATED 或 E_STRICT 错
+                误的代码，就能立刻去处理。
+            使用 E_ALL & ~E_DEPRECATED & ~E_STRICT
+                这两种日志不会出现在日志中，日志文件就会比较小。缺点就是你不会意识到代码中存在会引发 E_DEPRECATED 或 E_STRICT 错误的代
+                码，更想不起来去修复了。
+
+            个人觉得应该在开发期间尽可能的去解决 E_DEPRECATED 和 E_STRICT 级别的错误。如果是自己开发的代码引发的，就应该立刻去修复。如
+            果是第三方代码引发的，先考虑升级，如果没办法通过升级解决，再考虑换掉它，如果不能换掉它，就只能忍受了，千万别去改它的源代码。如果
+            开发期间我们能做的都做了，是使用 E_ALL 还是 E_ALL & ~E_DEPRECATED & ~E_STRICT 就只能到时候再根据实际情况决策了。
+
+        在生产中使用这些设置项，错误仍然会被记录到 web 服务器的错误日志中，但不会显示给用户。关于这些设置项的更多信息，请查看 PHP 手册：
+            error_reporting
+            display_errors
+            display_startup_errors
+            log_errors
