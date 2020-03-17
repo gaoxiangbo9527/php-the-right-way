@@ -24,7 +24,6 @@ PHP 有几种不同类型的测试工具（或框架），它们使用了不同�
         被接受。如果你运行一个接受 pull 请求的项目，那么你应该建议将此作为一个要求。
 
         PHPUnit 被公认为是为 PHP 应用程序编写单元测试的测试框架，但还有一些其他的选择：
-
             atoum
             Kahlan
             Peridot
@@ -51,5 +50,26 @@ PHP 有几种不同类型的测试工具（或框架），它们使用了不同�
         个人补充：Puppeteer、Nightmare 和 Cypress
 
 行为驱动开发
+    有两种不同类型的行为驱动开发（BDD）：SpecBDD 和 StoryBDD。SpecBDD 关注代码的技术行为，而 StoryBDD 关注于业务行为或特性行为或交互。
+    两种类型的 BDD 都有 PHP 的框架可用。
+
+    使用 StoryBDD，你可以编写人类可读的故事去描述应用程序的行为。然后，这些故事可以作为针对应用程序的实际测试去运行。StoryBDD 在 PHP 应用
+    程序中所使用的框架是 Behat ，它的灵感来自 Ruby 的 Cucumber 项目并且实现了用于描述特性行为的 Gherkin DSL 。
+
+    使用 SpecBDD，你可以编写描述实际代码应有的行为的规范。你不是在测试一个函数或方法，而是描述该函数或方法的行为方式。PHP 为此提供了
+    PHPSpec 框架。这个框架的灵感来自 Ruby 的 RSpec 项目。
+
+    BDD 链接
+        Behat，PHP 的 StoryBDD 框架，灵感来自于 Ruby 的 Cucumber 项目。
+        PHPSpec，PHP 的 SpecBDD 框架, 灵感来自于 Ruby 的 RSpec 项目。
+        Codeception 是一个使用 BDD 原则的全栈测试框架。
 
 补充的测试工具
+    除了个别的测试和行为驱动框架，还有一些通用框架和帮助库对于任何所采用的方法都非常有用。
+
+    工具链接
+        Selenium 是一个浏览器自动化工具，它可以与 PHPUnit 集成。
+        Mockery 是一个 Mock 对象框架，它可以与 PHPUnit 或 PHPSpec 集成。
+        Prophecy 是一个非常固执己见但非常强大和灵活的 PHP 对象 mock 框架。它与 PHPSpec 集成在一起，而且可以与 PHPUnit 一起使用。
+        php-mock 是一个帮助 mock PHP 原生函数的库。
+        Infection 是 变异测试 的一个 PHP 实现，它用于帮助衡量你的测试的有效性。
