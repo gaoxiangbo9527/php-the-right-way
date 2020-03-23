@@ -1,0 +1,122 @@
+有大量的 PHP 库、框架和组件可供选择。你的项目可能会使用其中的几个 —— 它们是项目的依赖。直到最近，PHP 还没有一种管理这些项目依赖的好方法。即
+使你手动管理它们，你仍然需要担心自动加载器。这不再是一个问题了。
+
+目前，PHP 有两种主要的包管理系统 —— Composer 和 PEAR 。Composer 是 PHP 目前最流行的包管理器，但在很长的一段时间内，PEAR 是那个一直主要
+被使用的包管理器。了解 PEAR 的历史是一个好主意，因为即使你从未使用过它，你仍然可以找到它的参考资料。
+
+Composer 和 Packagist
+    Composer 是推荐的 PHP 依赖管理器。在一个 composer.json 文件中列出你的项目的依赖并且通过几条简单的命令，Composer 将会自动的下载你的
+    项目的依赖并且为你设置好自动加载。Composer 类似于 node.js 世界中的 NPM，Ruby 世界中的 Bundler 。
+
+    有许多的 PHP 库与 Composer 兼容并且准备好在你的项目中使用。这些“包”列在了 Packagist 上，提供给兼容 Composer 的 PHP 库的官方仓库。
+
+    如何安装 Composer
+        下载 composer 最安全的方式就是 按照官方的指令做 。这将验证安装程序没有被破坏或篡改。该安装程序会安装一个 composer.phar 二进制文
+        件到你当前的工作目录中。
+
+        我们建议全局安装 Composer （例如，在 /usr/local/bin 中的一个副本）。为此，接下来运行这个命令：
+            mv composer.phar /usr/local/bin/composer
+        注意：如果上面的操作由于权限问题而失败了，在前面加上 sudo 。
+
+        为了运行一个本地安装的 Composer ，你应该使用 php composer.phar ，全局就简单的运行 composer 。
+
+    在 Windows 上安装
+        对于 Windows 用户来说，最容易的安装和运行方法就是使用 ComposerSetup 安装程序，它会执行一个全局安装并且设置好你的 $PATH ，这样
+        你就可以从命令行中的任何目录调用 composer 。
+
+    如何定义和安装依赖
+        Composer 在一个叫做 composer.json 的文件中保持跟踪你的项目的依赖。如果你喜欢，你可以手动管理它，或者使用 Composer 自身。
+        composer require 命令会添加一个项目依赖并且如果你还没有一个 composer.json 文件的话，将会创建一个。这里有一个添加 Twig 为你的项
+        目的一个依赖的示例。
+            composer require twig/twig:^2.0
+
+        另外，composer init 命令将会引导你完成为你的项目创建一份完整的 composer.json 文件。不论哪种方式，一旦你创建好了自己的
+        composer.json 文件，你就可以告诉 Composer 去下载和安装你的依赖到 vendor/ 目录中。下面的命令也适用于你下载的、已经提供了一份
+        composer.json 文件的项目：
+            composer install
+
+        接下来，将这一行添加到你的应用程序的主 PHP 文件中；这将告诉 PHP 为你的项目依赖去使用 Composer 的自动加载器。
+            <?php
+            require 'vendor/autoload.php';
+
+        现在你可以使用你的项目依赖了，并且它们将会按需自动加载。
+
+    更新你的依赖
+        Composer 创建一个名为 composer.lock 的文件，当你第一次运行 composer install 时，该文件会存储 Composer 所下载的每一个包的精
+        确版本。如果你同其他人分享你的项目，请确保这个 composer.lock 文件被包含在内，这样当它们运行 composer install 时，他们会得到和
+        你相同的版本。想要更新你的依赖，运行 composer update 。当进行部署时，不要使用 composer update ，只使用 composer install，否
+        则你可能会在生产上得到不同的包版本。
+
+        当你灵活地定义你的版本要求时，这是最有用的。例如，版本要求 ~1.8 意味着“比 1.8.0 更新，但少于 2.0.x-dev 的任何内容”。你也可以在
+        1.8.* 中使用 * 通配符。现在 Composer 的 composer update 命令将会升级你所有的依赖到满足你定义的限制的最新版本。
+
+    更新通知
+        想要接收有关新版本发布的通知，你可以注册 libraries.io ，一个可以监视依赖并且在更新时会向你发送警报的 web 服务。
+
+    检查你的依赖的安全问题
+        Security Advisories Checker 是一个 web 服务以及一个命令行工具，它们将会检查你的 composer.json 文件并且告诉你是否你需要去更新
+        任何依赖。
+
+    使用 Composer 处理全局的依赖
+        Composer 也能处理全局的依赖以及它们的二进制程序。用法是非常直接的，你所需要做的就是在命令前面加上 global 前缀。例如，如果你想要安
+        装 PHPUnit 并且让它可以全局使用，你应该运行下面的命令：
+            composer global require phpunit/phpunit
+
+        这将会创建一个 ~/.composer 文件夹，你的全局依赖将位于此处。为了让已安装的包的二进制程序能在任何地方使用，然后你应该将文件夹
+        ~/.composer/vendor/bin 添加到你的 $PATH 变量中。
+
+        了解 Composer
+
+PEAR
+    一些 PHP 开发人员喜欢的一个资深的包管理器是 PEAR 。它的行为类似于 Composer，但是有一些明显的不同。
+
+    PEAR 要求每一个包都必须有一种特定的结构，这意味着包的作者为了让包可以和 PEAR 一同使用，必须要准备好这种结构。使用一个没有准备好同 PEAR
+    一起使用的项目是不可能的。
+
+    PEAR 会全局的安装这些包，这意味着在安装它们之后，它们就会对服务器上的所有项目可用。如果许多项目依赖于同一个包的同一个版本的话，这是好的；
+    但是，如果两个项目之间出现版本冲突，则可能会导致问题。
+
+    如何安装 PEAR
+        你可以通过下载 .phar 安装程序并且执行它来安装 PEAR 。PEAR 的文档为每一种操作系统详述了 安装说明 。
+
+        如果你正在使用 Linux，你也可以看一下你的发行版的包管理器。例如 Debian 和 Ubuntu，有一个 apt 包 php-pear 。
+
+    如何安装一个包
+        如果一个包有列在 PEAR包列表 上，你可以通过指定正式的名称来安装它：
+            pear install foo
+
+        如果一个包托管在另外一种频道上，你需要先去 discover 这个频道并且在安装时也要指定它。查阅 使用频道文档 了解关于这个主题的更多信息。
+
+        了解 PEAR
+
+    使用 Composer 处理 PEAR 依赖
+        如果你已经在使用 Composer 了并且你还希望安装一些 PEAR 代码，你可以使用 Composer 去处理你的 PEAR 依赖。这个例子将会从
+        pear2.php.net 安装代码：
+            {
+                "repositories": [
+                    {
+                        "type": "pear",
+                        "url": "https://pear2.php.net"
+                    }
+                ],
+                "require": {
+                    "pear-pear2/PEAR2_Text_Markdown": "*",
+                    "pear-pear2/PEAR2_HTTP_Request": "*"
+                }
+            }
+
+        会使用第一部分“repositories”去让 Composer 知道它应该“初始化”（用 PEAR 的术语来讲，即“发现”）这个 pear repo 。然后 require
+        部分将像这样在包名前面加上前缀：
+            pear-channel/Package
+
+        “pear”前缀是硬编码的，以避免任何冲突，因为比如一个 pear 频道可能会和另一个包供应商名相同，此时就可以使用频道的短名称（或完整URL）
+        来引用包所在的通道。
+
+        当安装此代码后，它将在你的 vendor 目录中可用，并且通过 Composer 的自动加载器就可以自动使用：
+            vendor/pear-pear2.php.net/PEAR2_HTTP_Request/pear2/HTTP/Request.php
+
+        为了使用这个 PEAR 包，简单地引用它即可，像这样：
+            <?php
+            $request = new pear2\HTTP\Request();
+
+        了解更多关于通过 Composer 使用 PEAR 的内容
