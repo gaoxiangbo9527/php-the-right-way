@@ -1,0 +1,337 @@
+比较运算符
+    比较运算符是 PHP 经常被忽视的一个方面，它会引发许多意想不到的结果。其中一个问题源自于严格比较（布尔值会作为整数比较）。
+
+    <?php
+    $a = 5;   // 5 as an integer
+
+    var_dump($a == 5);       // compare value; return true
+    var_dump($a == '5');     // compare value (ignore type); return true
+    var_dump($a === 5);      // compare type/value (integer vs. integer); return true
+    var_dump($a === '5');    // compare type/value (integer vs. string); return false
+
+    //Equality comparisons
+    if (strpos('testing', 'test')) {    // 'test' is found at position 0, which is interpreted as the boolean 'false'
+        // code...
+    }
+
+    // vs. strict comparisons
+    if (strpos('testing', 'test') !== false) {    // true, as strict comparison was made (0 !== false)
+        // code...
+    }
+
+    比较运算符
+    比较表格
+    比较小抄
+
+条件语句
+    if 语句
+        在函数或类方法中使用“if/else”语句时，存在一个常见的误解，即必须结合使用“else”去声明潜在结果。但是如果该结果是去定义返回值，“else”
+        就不是必须的，因为“return”将会结束该函数，使“else”变得没有实际意义。
+
+        <?php
+        function test($a)
+        {
+            if ($a) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        // vs.
+
+        function test($a)
+        {
+            if ($a) {
+                return true;
+            }
+            return false;    // else is not necessary
+        }
+
+        // or even shorter:
+
+        function test($a)
+        {
+            return (bool) $a;
+        }
+
+        if 语句
+
+    switch 语句
+        switch 语句是避免输入无穷无尽的 if 和 elseif 的好方法，但是有一些事情需要注意：
+            switch 语句只比较值，而不比较类型（等同于 ==）
+            逐个迭代各个 case，直到找到匹配项。如果没有找到匹配项，那么就使用 defalut （如果已定义的话）
+            没有一个 break，它们将继续执行每个 case，直到碰到一个 break/return
+            在一个函数中，使用“return”可以减少在函数结束时使用“break”的需求
+            个人补充：我个人经常在 return 下面补上一条 break 语句，看样子确实没必要，只用 return 足以。
+
+            <?php
+            $answer = test(2);    // the code from both 'case 2' and 'case 3' will be implemented
+
+            function test($a)
+            {
+                switch ($a) {
+                    case 1:
+                        // code...
+                        break;             // break is used to end the switch statement
+                    case 2:
+                        // code...         // with no break, comparison will continue to 'case 3'
+                    case 3:
+                        // code...
+                        return $result;    // within a function, 'return' will end the function
+                    default:
+                        // code...
+                        return $error;
+                }
+            }
+
+全局命名空间
+    当使用命名空间时，你可能会发现内置函数会被你自己编写的函数隐藏掉。为了修复这个问题，可以通过在函数名前使用反斜杠来引用全局函数。
+
+    <?php
+    namespace phptherightway;
+
+    function fopen()
+    {
+        $file = \fopen();    // Our function name is the same as an internal function.
+                             // Execute the function from the global space by adding '\'.
+    }
+
+    function array()
+    {
+        $iterator = new \ArrayIterator();    // ArrayIterator is an internal class. Using its name without a backslash
+                                             // will attempt to resolve it within your namespace.
+    }
+
+字符串
+    连接
+        如果你的行超出了推荐的行长（120个字符），考虑连接你的行
+        为了可读性，最好使用连接运算符而不是连接赋值运算符
+        并且在变量的原始作用域内，在连接时使用新行缩进
+
+    字符串的类型
+        字符串是一系列字符，听起来相当简单。也就是说，有几种不同类型的字符串，它们提供的语法略有不同，行为也略有不同。
+
+    单引号
+        单引号常常用于表示“字面量字符串”。字面量字符串不会尝试去解析特殊字符或变量。
+
+        如果使用单引号，你可以像这样把一个变量名输入到一个字符串中：'some $thing'，并且你将准确的看到输出 some $thing 。如果使用双引号，
+        那么将会尝试去计算 $thing 变量名并且如果没有找到变量的话会显示错误。
+
+        <?php
+        echo 'This is my string, look at how pretty it is.';    // no need to parse a simple string
+
+        /**
+         * Output:
+         *
+         * This is my string, look at how pretty it is.
+         */
+
+         单引号
+
+    双引号
+        双引号是字符串的瑞士军刀。它们不仅会解析上面提到的变量，还会解析各种特殊字符，比如用于换行的 \n，用于制表的 \t 等等。
+
+            <?php
+            echo 'phptherightway is ' . $adjective . '.'     // a single quotes example that uses multiple concatenating for
+                . "\n"                                       // variables and escaped string
+                . 'I love learning' . $code . '!';
+
+            // vs
+
+            echo "phptherightway is $adjective.\n I love learning $code!"  // Instead of multiple concatenating, double quotes
+                                                                           // enables us to use a parsable string
+        双引号可以包含变量；这就是所谓的“插值”。
+
+            <?php
+            $juice = 'plum';
+            echo "I like $juice juice";    // Output: I like plum juice
+
+        当使用插值时，经常会遇到变量碰到另一个字符的情况。这将导致一些关于变量名是什么和字面量字符是什么的困惑。
+
+        为了修复这个问题，把这个变量包围在一对花括号中。
+
+            <?php
+            $juice = 'plum';
+            echo "I drank some juice made of $juices";    // $juice cannot be parsed
+
+            // vs
+
+            $juice = 'plum';
+            echo "I drank some juice made of {$juice}s";    // $juice will be parsed
+
+            /**
+             * Complex variables will also be parsed within curly brackets
+             */
+
+            $juice = array('apple', 'orange', 'plum');
+            echo "I drank some juice made of {$juice[1]}s";   // $juice[1] will be parsed
+
+        双引号
+
+    Nowdoc 语法
+        Nowdoc 语法是在 5.3 中被引入的并且内部行为与单引号相同，除了它适合于多行字符串的使用，而不需要连接。
+
+        <?php
+        $str = <<<'EOD'             // initialized by <<<
+        Example of string
+        spanning multiple lines
+        using nowdoc syntax.
+        $a does not parse.
+        EOD;                        // closing 'EOD' must be on it's own line, and to the left most point
+
+        /**
+         * Output:
+         *
+         * Example of string
+         * spanning multiple lines
+         * using nowdoc syntax.
+         * $a does not parse.
+         */
+
+         Nowdoc 语法
+
+    Heredoc 语法
+        Heredoc 语法的内部行为与双引号相同，除了它适合于多行字符串的使用，而不需要连接。
+
+            <?php
+            $a = 'Variables';
+
+            $str = <<<EOD               // initialized by <<<
+            Example of string
+            spanning multiple lines
+            using heredoc syntax.
+            $a are parsed.
+            EOD;                        // closing 'EOD' must be on it's own line, and to the left most point
+
+            /**
+             * Output:
+             *
+             * Example of string
+             * spanning multiple lines
+             * using heredoc syntax.
+             * Variables are parsed.
+             */
+
+        Heredoc 语法
+
+        应该注意的是，多行字符串也可以通过在一条语句中跨多行连续它们来形成。
+
+            $str = "
+            Example of string
+            spanning multiple lines
+            using statement syntax.
+            $a are parsed.
+            ";
+
+            /**
+             * Output:
+             *
+             * Example of string
+             * spanning multiple lines
+             * using statement syntax.
+             * Variables are parsed.
+             */
+
+    哪一种更快？
+        流传着一种神话，单引号比双引号快一点点。这根本不是真的。
+
+        如果你定义一个字符串并且不尝试连接值或任何复杂的东西，那么一个单引号或双引号字符串将完全相同。没有哪个更快。
+
+        如果你正在连接任何类型的多个字符串，或者将值插入到双引号字符串中，那么结果可能会有所不同。如果你使用的是少量的值，那么连接要快得多。
+        如果使用大量的值，那么插值会更快。
+
+        不论你使用字符串做什么，没有一种类型会对你的应用程序产生明显的影响。试图重写代码以使用其中一个或者另外一个总是徒劳的，所以避免这种微
+        弱的优化，除非你真正理解差异的意义和影响。
+
+三元运算符
+    三元运算符是一种很好的压缩代码的方式，但是经常被过度使用。虽然三元运算符可以被堆叠/嵌套，但为了可读性，建议每行使用一个。
+
+        <?php
+        $a = 5;
+        echo ($a == 5) ? 'yay' : 'nay';
+
+    相比之下，这里的示例为了减少行数而牺牲了所有形式的可读性。
+
+        <?php
+        echo ($a) ? ($a == 5) ? 'yay' : 'nay' : ($b == 10) ? 'excessive' : ':(';    // excess nesting, sacrificing readability
+
+    若要用三元运算符“返回”一个值，请使用正确的语法。
+
+        <?php
+        $a = 5;
+        echo ($a == 5) ? return true : return false;    // this example will output an error
+
+        // vs
+
+        $a = 5;
+        return ($a == 5) ? 'yay' : 'nope';    // this example will return 'yay'
+
+    应该注意的是，你不需要使用一个三元运算符去返回一个布尔值。这方面的一个例子是。
+
+        <?php
+        $a = 3;
+        return ($a == 3) ? true : false; // Will return true if $a == 3 or false
+
+        // vs
+
+        $a = 3;
+        return $a == 3; // Will return true if $a == 3 or false
+
+    对于所有的运算都可以这么说（===，!==，!=，==，等等）。
+
+    为了组织和功能使用带有圆括号的三元运算符
+        个人补充：其实在三元运算符中是否该使用圆括号还是很直观的。
+
+        当使用三元运算符时，圆括号可以发挥自己的作用来提高代码的可读性，还可以在语句块中包含结合。
+
+        一个不需要使用圆括号的例子是：
+
+            <?php
+            $a = 3;
+            return ($a == 3) ? "yay" : "nope"; // return yay if $a == 3 or nope
+
+            // vs
+
+            $a = 3;
+            return $a == 3 ? "yay" : "nope"; // return yay if $a == 3 or nope
+
+        圆括号还为我们提供了在语句块中创建结合的能力，该语句块将作为一个整体进行检查。比如下面这个例子，如果 ($a == 3 and $b == 4)
+        为真且 $c == 5 也为真，那么它将会返回真。
+
+            <?php
+            return ($a == 3 && $b == 4) && $c == 5;
+
+        下面的片段是另一个例子，如果($a != 3 AND $b != 4) 或 $c == 5 为真，它将会返回真。
+
+            <?php
+            return ($a != 3 && $b != 4) || $c == 5;
+
+        从 PHP 5.3 开始，可以省略三元运算符的中间部分。如果 expr1 求值为真，那么表达式“expr1 ?: expr3”会返回 expr1 ，否则会返回
+        expr3 。
+
+    三元操作符
+
+变量声明
+    有时，程序员试图通过给预定义变量声明一个不同的名称来使他们的代码“更简洁”。实际上，这么做将使脚本的内存消耗增加一倍。对于下面的例子，让我
+    们假设一个示例文本字符串包含 1MB 的数据，通过复制该变量，你将脚本的执行增加到了 2MB 。
+
+        <?php
+        $about = 'A very long string of text';    // uses 2MB memory
+        echo $about;
+
+        // vs
+
+        echo 'A very long string of text';        // uses 1MB memory
+
+    个人补充：这条建议是 性能技巧 这篇文章中的，这篇文章中原来的示例感觉更合适：
+        $description = strip_tags($_POST['description']);
+        echo $description;
+
+        // vs
+
+        echo strip_tags($_POST['description']);
+
+        对于预定义变量，我自己就经常犯上面这种错误；不过对于其他情况下是否提炼变量，个人感觉还是应该先考虑表达力，遇到内存问题时再考虑内联。
+
+    性能技巧
