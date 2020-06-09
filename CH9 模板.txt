@@ -1,0 +1,128 @@
+模板提供了一种方便的方式去将控制器和领域逻辑与表现逻辑分离。模板通常包含应用程序的 HTML，但也可以使用其他格式，比如 XML。模板通常被称为
+“视图”，它构成了模型-视图-控制器（MVC）软件架构模式的第二个组件的一部分。
+
+好处
+    使用模板的主要好处是它们在表现逻辑和应用程序的其余部分之间创建了清晰的分离。模板全权负责显示格式化的内容。它们不负责数据查找、持久化或其
+    他更复杂的任务。这会导致更清晰、更可读的代码，在开发人员处理服务器端代码（控制器、模型）并且设计人员处理客户端代码（标记）的团队环境中尤
+    其有用。
+
+    模板还提升了表现代码的组织。模板通常被放在“views”文件夹中，每个文件中定义一个模板。这种方法鼓励代码复用，更大的代码块将分解为更小的、可
+    复用的片段，通常被称为部分。比如，你的站点的页眉和页脚可以分别被定义为模板，然后它们将被包含在每个页面模板的前面和后面。
+
+    最后，取决于你所使用的库，模板可以通过自动转义用户生成的内容来提供更多的安全性。一些库甚至提供了沙箱，此时模板设计者只能访问白名单中的变
+    量和函数。
+
+纯 PHP 模板
+    纯 PHP 模板即是使用原生 PHP 代码的模板。因为 PHP 自身实际上是一种模板语言，所以这些纯 PHP 模板就是一种很自然的选择。这就意味着你可以将
+    PHP 代码与其他代码组合在一起，比如 HTML。这对 PHP 开发人员是有益的，因为不需要去学习新的语法，他们知道那些对自己可用的功能，并且他们的
+    代码编辑器已经内置了 PHP 语法高亮显示和自动完成功能。此外，纯 PHP 模板通常是非常快的，因为不需要编译阶段。
+
+    每一个现代的 PHP 框架都使用某种模板系统，大多数框架默认使用纯 PHP。在框架之外，像 Plates 或 Aura.View 这样的库，通过提供继承、布局和
+    扩展等现代的模板功能让使用纯 PHP 模板变得更容易。
+
+    一个纯 PHP 模板的简单例子
+        使用 Plates 库。
+
+        <?php // user_profile.php ?>
+
+        <?php $this->insert('header', ['title' => 'User Profile']) ?>
+
+        <h1>User Profile</h1>
+        <p>Hello, <?=$this->escape($name)?></p>
+
+        <?php $this->insert('footer') ?>
+
+
+    使用继承的纯 PHP 模板的例子
+        使用 Plates 库。
+
+        <?php // template.php ?>
+
+        <html>
+        <head>
+            <title><?=$title?></title>
+        </head>
+        <body>
+
+        <main>
+            <?=$this->section('content')?>
+        </main>
+
+        </body>
+        </html>
+
+        <?php // user_profile.php ?>
+
+        <?php $this->layout('template', ['title' => 'User Profile']) ?>
+
+        <h1>User Profile</h1>
+        <p>Hello, <?=$this->escape($name)?></p>
+
+编译模板
+    虽然 PHP 已经发展成为了一种成熟的、面向对象的语言，但作为一种模板语言，它并没有改进多少。编译模板，如 Twig、Brainy 或 Smarty *，通过
+    提供专门针对模板的新语法填补了这块空白。从自动转义到继承和简化了的控制结构，编译模板被设计成更容易编写、更整洁可读和更安全可用。编译模板
+    甚至可以在不同的语言之间共享，Mustache 就是一个很好的例子。因为这些模板必须被编译，所以会有一点轻微的性能影响，然而当使用适当的缓存后，
+    这种性能影响会非常小。
+
+    * 虽然 Smarty 提供了自动转义，但该特性默认是不启用的。
+
+    一个编译模板的简单例子
+        使用 Twig 库。
+
+        {% include 'header.html' with {'title': 'User Profile'} %}
+
+        <h1>User Profile</h1>
+        <p>Hello, {{ name }}</p>
+
+        {% include 'footer.html' %}
+
+    使用继承的编译模板的例子
+        使用 Twig 库。
+
+        // template.html
+
+        <html>
+        <head>
+            <title>{% block title %}{% endblock %}</title>
+        </head>
+        <body>
+
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+
+        </body>
+        </html>
+
+        // user_profile.html
+
+        {% extends "template.html" %}
+
+        {% block title %}User Profile{% endblock %}
+        {% block content %}
+            <h1>User Profile</h1>
+            <p>Hello, {{ name }}</p>
+        {% endblock %}
+
+延伸阅读
+    文章和教程
+        PHP 中的模板引擎
+        一份 CodeIgniter 中视图和模板的介绍
+        开始使用PHP模板
+        在 PHP 中使用你自己的模板系统
+        精通页面
+        使用 Symfony 2 中的模板
+        写更安全的模板
+
+    库
+        Aura.View （原生）
+        Blade （编译，框架特定）
+        Brainy （编译）
+        Dwoo （编译）
+        Latte （编译）
+        Mustache （编译）
+        PHPTAL （编译）
+        Plates （原生）
+        Smarty （编译）
+        Twig （编译）
+        Zend\View （原生，框架特定）
