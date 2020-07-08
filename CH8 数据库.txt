@@ -1,0 +1,153 @@
+很多时候，PHP 代码会使用一种数据库去保存信息。对于连接数据库和同数据库交互，你有几种选择。PHP 5.1.0 之前，推荐的选择是使用原生的驱动程序，
+如 mysqli、pgsql、mssql 等。
+
+如果你在你的应用程序中只使用一种数据库，那么原生的驱动程序是非常好的，但是如果你使用 MySQL 和一点 MSSQL ，或者你需要连接到一个 Oracle 数据
+库，那么你将不能再使用相同的驱动程序。你需要为每种数据库学习一套全新的 API —— 这可能有些不明智。
+
+MySQL 扩展
+    PHP 的 mysql 扩展相当的古老并且已经被另外两个扩展所取代了：
+        mysqli
+        pdo
+
+    mysql 扩展不仅在很久以前就停止开发了，而且从 PHP 5.5.0 开始已经被弃用，并在 PHP 7.0 中被正式删除。
+
+    为了避免深入研究你的 php.ini 设置以查看你正在使用的模块，一种选择是在你选用的编辑器中搜索 mysql_* 。如果任何诸如 mysql_connect() 和
+    mysql_query() 的函数出现了，则说明正在使用 mysql 。
+
+    即使你还没使用 PHP 7.x ，如果不尽快考虑升级，那么在 PHP 7.x 升级确实到来的时候将会面临更大的困难。最好的选择是在你的应用程序中按照你自
+    己的开发计划使用 mysqli 或 PDO 去替代 mysql，这样你以后就不会那么匆忙了。
+
+    如果你正在从 mysql 升级到 mysqli，注意那些建议你可以简单地找到 mysql_* 并将其替换为 mysqli_* 的懒惰的升级指南。这不仅过于简化，还忽
+    略了 mysqli 提供的优点，比如参数绑定，在 PDO 中也有提供。
+
+    MySQLi 准备好的语句
+    PHP：为 MySQL 选择一种 API
+
+PDO 扩展
+    PDO 是一个数据库连接抽象库 —— 从 5.1.0 开始内置于 PHP 中 —— 提供了一套通用的、可以同许多不同的数据库对话的接口。例如，你可以使用基本
+    相同的代码与 MySQL 或 SQLite 交流：
+        <?php
+        // PDO + MySQL
+        $pdo = new PDO('mysql:host=example.com;dbname=database', 'user', 'password');
+        $statement = $pdo->query("SELECT some_field FROM some_table");
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        echo htmlentities($row['some_field']);
+
+        // PDO + SQLite
+        $pdo = new PDO('sqlite:/path/db/foo.sqlite');
+        $statement = $pdo->query("SELECT some_field FROM some_table");
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        echo htmlentities($row['some_field']);
+
+    PDO 不会翻译你的 SQL 查询或者模拟缺少的功能；它纯粹是用于使用相同的 API 去连接多种类型的数据库。更重要的是，PDO 允许你安全地将外部输入
+    （例如 IDs）注入到 SQL 查询中，而不必担心数据库 SQL 注入攻击。这可以使用 PDO 语句和参数绑定。
+
+    让我们假设有一个接收一个数值 ID 作为查询参数的 PHP 脚本。该 ID 应该用于从一个数据库获取一条用户记录。这样做是错误的：
+        <?php
+        $pdo = new PDO('sqlite:/path/db/users.db');
+        $pdo->query("SELECT name FROM users WHERE id = " . $_GET['id']); // <-- NO!
+
+    这是糟糕的代码。你正在将一个原始的查询参数插入到一条 SQL 查询中。使用一种称为 SQL 注入的实践，这将使你立刻被黑。想象一下，如果一名黑客
+    通过调用一个类似于 http://domain.com/?id=1%3BDELETE+FROM+users 的 URL 来传入一个有创意的 id 参数。这将会把 $_GET['id'] 设置为
+    1;DELETE FROM users ，这将删除你所有的用户！相反，应该使用 PDO 参数绑定来清理该 ID 输入。
+        <?php
+        $pdo = new PDO('sqlite:/path/db/users.db');
+        $stmt = $pdo->prepare('SELECT name FROM users WHERE id = :id');
+        $id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT); // 先过滤你的数据（请参阅 [Data Filtering](#data_filtering)），对于 INSERT ，UPDATE 等尤其重要
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT); // 通过 PDO 自动的为 SQL 进行清理
+        $stmt->execute();
+
+    这是正确的代码。它在一个 PDO 语句上使用了一个参数绑定。这将把外部输入 ID 引入数据库前对其进行转义，以防止潜在的 SQL 注入攻击。
+
+    对于写入，例如 INSERT 或 UPDATE，仍然先过滤数据并且再为其它的事情（移除 HTML 标签，JavaScript 等等）进行清理，是尤其重要的。PDO 只
+    会为 SQL 进行清理，不会为你的应用程序进行清理。
+
+        了解 PDO
+
+    你还应该意识到数据库连接会耗尽资源并且如果连接没有被隐式关闭，资源耗尽的情况也不是没有听说过，但是在其他语言中更常见。使用 PDO，你可以通
+    过销毁对象来隐式地关闭连接，方法是确保删除对该对象所有剩余的引用，比如设置为 NULL 。如果你没有显式地执行此操作，PHP 将在脚本结束时自动的
+    关闭连接 —— 当然，除非你使用的是持久连接。
+
+        了解 PDO 连接
+
+与数据库交互
+    当开发人员刚开始学习 PHP 时，他们通常会把数据库交互和表现逻辑混在一起，使用可能看起来想这样的代码：
+        <ul>
+        <?php
+        foreach ($db->query('SELECT * FROM table') as $row) {
+            echo "<li>".$row['field1']." - ".$row['field1']."</li>";
+        }
+        ?>
+        </ul>
+
+    出于各种原因，这都是糟糕的实践，主要它是难以调试，难以测试，难以阅读并且如果你不对其加以限制的话，它将会输出许多的字段。
+
+    虽然有许多其他解决方案来做到这一点 —— 取决于你偏好 OOP 还是 函数式编程 —— 但一定有一些分离的因素。
+
+    考虑最基本的步骤：
+        <?php
+        function getAllFoos($db) {
+            return $db->query('SELECT * FROM table');
+        }
+
+        $results = getAllFoos($db);
+        foreach ($results as $row) {
+            echo "<li>".$row['field1']." - ".$row['field1']."</li>"; // BAD!!
+        }
+
+    这是一个好的开始。把这两个项目放在两个不同的文件中，你就得到了一些清晰的分离。
+
+    创建一个类来放置该方法，你就得到了一个“模型”。创建一个简单的 .php 文件去放置表现逻辑，然后你就得到了一个“视图”，这非常的接近 MVC —— 一
+    种通用于大多数框架的 OOP 架构。
+
+    foo.php
+        <?php
+        $db = new PDO('mysql:host=localhost;dbname=testdb;charset=utf8mb4', 'username', 'password');
+
+        // Make your model available
+        include 'models/FooModel.php';
+
+        // Create an instance
+        $fooModel = new FooModel($db);
+        // Get the list of Foos
+        $fooList = $fooModel->getAllFoos();
+
+        // Show the view
+        include 'views/foo-list.php';
+
+    models/FooModel.php
+        <?php
+        class FooModel
+        {
+            protected $db;
+
+            public function __construct(PDO $db)
+            {
+                $this->db = $db;
+            }
+
+            public function getAllFoos() {
+                return $this->db->query('SELECT * FROM table');
+            }
+        }
+
+    views/foo-list.php
+        <?php foreach ($fooList as $row): ?>
+            <li><?= $row['field1'] ?> - <?= $row['field1'] ?></li>
+        <?php endforeach ?>
+
+    这和大多数现代框架正在做的事情基本上相同，尽管更手动一点。你可能不需要每次都这么做，但是如果你想对你的应用程序进行单元测试的话，那么将过
+    多的表现逻辑和数据库交互混在一起可能会成为一个真正的问题。
+
+    PHPBridge 有一个很棒的资源，叫做 创建一个数据类 ，它包含了一个非常相似的主题，并且对于刚习惯与数据库交互的概念的开发者非常好。
+
+抽象层
+    许多框架提供了它们自己的抽象层，它们可能也可能不基于 PDO 。通过用 PHP 方法包装查询，这些抽象层经常会为一个数据库系统模拟那些相较于另一
+    个数据库系统所缺少的特性，为你提供实际的数据库抽象，而不仅仅是 PDO 所提供的连接抽象。这当然会增加一些开销，但是如果你正在构建一个需要同
+    MySQL、PostgreSQL 和 SQLite 一起使用的可移植的应用程序，那么为了代码的整洁性，一点开销是值得的。
+
+    一些抽象层已经使用 PSR-0 或 PSR-4 命名空间标准来建立，因此它们可以安装在任何你喜欢的应用程序中：
+        Aura SQL
+        Doctrine2 DBAL
+        Propel
+        Zend-db
