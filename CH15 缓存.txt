@@ -32,10 +32,8 @@ PHP 自身是非常快的，但是当你进行远程连接、加载文件等时�
 
     注意，当以 web 服务器中的（快速）CGI 应用程序运行 PHP 时，每个 PHP 进程都将会有它自己的缓存，即，APCu 数据不是在你的工作进程之间共享
     的。在这种情况下，你可能需要考虑使用 memcached，因为它会不绑定到 PHP 进程上。
-    个人补充：上面这一小段的观点应该不对，APCu 是基于共享内存实现的，所以是可以在多个工作进程之间共享的，具体请参考：
-        https://taobig.org/?p=612
-        https://github.com/krakjoe/apcu/issues/121
-        https://github.com/krakjoe/apcu/issues/255
+    个人补充：上面这一小段的观点不完全准确。具体请参考 https://github.com/krakjoe/apcu/issues/121 ，其中的回复都很有意义，要认真看，
+    特别是作者 krakjoe 的回复。另外 https://taobig.org/?p=612 底部也值得一看。
 
     在网络配置中，APCu 在访问速度方面通常会超过 memcached，但是 memcached 能够更快且更进一步地进行扩展。如果你预期不会有多台服务器运行你
     的应用程序，或者不需要 memcached 提供的额外特性，那么 APCu 可能是对象缓存的最佳选择。
