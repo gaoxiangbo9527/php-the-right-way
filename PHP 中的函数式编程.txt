@@ -1,0 +1,61 @@
+PHP 支持一级函数，这意味着一个函数被赋值给一个变量。用户定义函数和内置函数都可以由变量引用和动态的调用。函数可以当作参数传递给其他函数（一种叫
+做高阶函数的特性）并且函数可以返回其他函数。
+
+递归，一种允许函数调用自身的特性，被 PHP 语言支持，但大多数 PHP 代码聚焦于迭代。
+
+自 PHP 5.3（2009）以来，出现了新的匿名函数（带有对闭包的支持）。
+
+PHP 5.4 添加了将闭包绑定到对象作用域的能力并且改进了对 callable 的支持，这样 callable 就可以在几乎所有情况下与匿名函数互换使用。
+
+高阶函数最常见的用法是在实现策略模式时。内置的 array_filter() 函数要求输入数组（数据）和一个用作每个数组项筛选函数的函数（一个策略或回调）。
+    <?php
+    $input = array(1, 2, 3, 4, 5, 6);
+
+    // Creates a new anonymous function and assigns it to a variable
+    $filter_even = function($item) {
+        return ($item % 2) == 0;
+    };
+
+    // Built-in array_filter accepts both the data and the function
+    $output = array_filter($input, $filter_even);
+
+    // The function doesn't need to be assigned to a variable. This is valid too:
+    $output = array_filter($input, function($item) {
+        return ($item % 2) == 0;
+    });
+
+    print_r($output);
+
+闭包是一个不使用任何全局变量就可以访问从外部作用域导入的变量的匿名函数。理论上，闭包是一个在其定义时具有一些被环境关闭（即，固定）的参数的函数。
+闭包可以以一种整洁的方式绕过变量的作用域限制。
+
+在下面的例子中，我们使用闭包定义了一个为 array_filter() 从一过滤函数家族中返回单个过滤函数的函数。
+    <?php
+    /**
+     * Creates an anonymous filter function accepting items > $min
+     *
+     * Returns a single filter out of a family of "greater than n" filters
+     */
+    function criteria_greater_than($min)
+    {
+        return function($item) use ($min) {
+            return $item > $min;
+        };
+    }
+
+    $input = array(1, 2, 3, 4, 5, 6);
+
+    // Use array_filter on a input with a selected filter function
+    $output = array_filter($input, criteria_greater_than(3));
+
+    print_r($output); // items > 3
+
+家族中的每个过滤函数只接受大于某个最小值的元素。由 criteria_greater_than 返回的单个过滤器是一个闭包，其 $min 参数由作用域中的值关闭（当调
+用 criteria_greater_than 时以一个参数给定）。
+
+默认情况下是使用早期绑定将 $min 变量导入到创建的函数中。对于具有后期绑定的真正的闭包，应该在导入时使用引用。假设有一个模板或输入验证库，其中
+定义了一个闭包来捕获作用域中的变量，并会在稍后求值匿名函数时访问它们。
+
+了解匿名函数
+闭包 RFC 中的更多细节
+了解使用 call_user_func_array() 动态的调用函数
