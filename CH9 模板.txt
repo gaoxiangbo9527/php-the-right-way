@@ -32,7 +32,6 @@
 
         <?php $this->insert('footer') ?>
 
-
     使用继承的纯 PHP 模板的例子
         使用 Plates 库。
 
