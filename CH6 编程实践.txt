@@ -1,3 +1,55 @@
+基础
+    PHP是一门庞大的语言，它允许各个级别的程序员不仅快速而且高效地生成代码。然而，在精深这门语言的过程中，我们经常忘记（或忽视）了我们最初习得
+    的基础知识，而去支持捷径和/或坏习惯。为了帮助解决这个普遍的问题，本节旨在提醒程序员 PHP 中的基本编码实践。
+
+    继续阅读 基础 。
+
+日期和时间
+    PHP 有一个名为 DateTime 的类，可以帮助你读取、写入、比较或计算日期和时间。在 PHP 中除了 DateTime 以外还有许多日期和时间相关的函数，
+    但是 DateTime 为最常见的用途提供了良好的面向对象的接口。它可以处理时区，但是那已经超出了这篇简短介绍的范围。
+
+    想要开始使用 DateTime，可以使用 createFromFormat() 工厂方法将原始的日期和时间字符串转换为一个对象，或者进行 new DateTime 来获取当
+    前的日期和时间。使用 format() 方法去将 DateTime 转换回一个用于输出的字符串。
+        <?php
+        $raw = '22. 11. 1968';
+        $start = DateTime::createFromFormat('d. m. Y', $raw);
+
+        echo 'Start date: ' . $start->format('Y-m-d') . "\n";
+
+    通过 DateInterval 类，使得计算 DateTime 是可能的。DateTime 有像 add() 和 sub() 这样的方法，它们接受一个 DateInterval 作为参数。
+    不要编写期望每天的秒数都相同的代码，夏令时和时区更改都会打破这一假设。使用日期间隔代替。想要计算日期差异，可以使用 diff() 方法。它会返回
+    新的 DateInterval ，而它非常容易显示。
+        <?php
+        // create a copy of $start and add one month and 6 days
+        $end = clone $start;
+        $end->add(new DateInterval('P1M6D'));
+
+        $diff = $end->diff($start);
+        echo 'Difference: ' . $diff->format('%m month, %d days (total: %a days)') . "\n";
+        // Difference: 1 month, 6 days (total: 37 days)
+
+    在 DateTime 对象上，可以使用标准的比较：
+        <?php
+        if ($start < $end) {
+            echo "Start is before the end!\n";
+        }
+
+    最后一个示例演示 DatePeriod 类。它用于迭代重复的事件。它能接受两个 DateTime 对象，开始和结束，以及间隔，该间隔将返回开始和结束中间的
+    所有事件。
+        <?php
+        // output all thursdays between $start and $end
+        $periodInterval = DateInterval::createFromDateString('first thursday');
+        $periodIterator = new DatePeriod($start, $periodInterval, $end, DatePeriod::EXCLUDE_START_DATE);
+        foreach ($periodIterator as $date) {
+            // output each date in the period
+            echo $date->format('Y-m-d') . ' ';
+        }
+
+    一个流行的 PHP API 扩展是 Carbon 。它继承了 DateTime 类中的一切，因此只涉及最少的代码更改，却有额外的特性，包括本地化支持、更进一步
+    的添加、删除和格式化 DateTime 对象的方式，以及通过模拟你选择的日期和时间来测试代码的方法。
+
+    阅读 DateTime
+    阅读日期格式化（已接受的日期格式字符串选项）
 
 设计模式
     当你在构建你的应用程序时，在代码中使用通用的模式以及为项目的总体结构使用通用的模式都是有帮助的。使用通用的模式是有帮助的，是因为它会使管
@@ -9,3 +61,167 @@
 
     你可以在这里学到更多关于 PHP 设计模式的内容并且查阅到基本可行的例子：
         https://designpatternsphp.readthedocs.io/
+
+使用 UTF-8
+    本节最初是由 PHP 最佳实践 的 Alex Cabal 编写的，并且已经作为我们自己的 UTF-8 建议的基础。
+
+    没有俏皮话。要谨慎、细致、前后一致。
+        目前 PHP 还不支持低层的 Unicode。有一些方法可以确保 UTF-8 字符串被正确的处理，但这并不容易，并且它需要深入到 web 应用程序的几乎
+        所有层次，从 HTML 到 SQL 再到 PHP。我们的目标是做一个简短而实用的总结。
+
+    PHP 层的 UTF-8
+        基础的字符串操作，如连接两个字符串和将字符串赋值给变量，对于 UTF-8 来说，不需要任何特殊的东西。然而，大多数字符串函数，如 strpos()
+        和 strlen()，确实需要特别的考虑。这些函数通常有一个对应的 mb_*：例如，mb_strpos() 和 mb_strlen()。这些 mb_* 字符串是通过
+        Multibyte String Extension（多字节字符串扩展）提供给你的，并且是专门设计来操作 Unicode 字符串的。
+
+        无论何时操作 Unicode 字符串，都必须使用 mb_* 函数。例如，如果在 UTF-8 字符串上使用 substr()，很有可能结果会包含一些乱码的半字符。
+        正确的函数应该是多字节的对应函数 mb_substr()。
+
+        困难的部分是始终记住使用 mb_* 函数。如果你仅仅忘记了一次，那么在进一步的处理过程中，你的 Unicode 字符串还是有可能被弄乱。
+
+        并不是所有的字符串函数都有对应的 mb_*。如果对你想要做的事情并没有一个对应的函数，那么你可能就不走运了。
+
+        你应该在你编写的每个 PHP 脚本的顶部（或在你的全局包含脚本的顶部）使用 mb_internal_encoding() 函数，然后是 mb_http_output()函
+        数，如果你的脚本正输出到浏览器。在每个脚本中显式地定义字符串编码将为你省去许多头疼的事情。
+
+        此外，许多对字符串进行操作的 PHP 函数都有一个可选的参数，允许你指定字符编码。当指定该选项时，应该总是显式地指定 UTF-8。例如，
+        htmlentities() 有一个字符编码选项，如果处理这样的字符串，你应该总是指定 UTF-8。注意从 PHP 5.4.0 开始，UTF-8 是
+        htmlentities() 和 htmlspecialchars() 的默认编码。
+
+        最后，如果你正在构建一个分布式应用程序，并且不能确定是否启用了 mbstring 扩展，那么可以考虑使用 patchwork/utf8 这个 Composer 包。
+        该包将使用 mbstring，如果它是可用的话，如果不可用，则回退到非 UTF-8 的函数。
+        个人补充：这个包已经被弃用并且不再被维护。作者建议使用 symfony/polyfill-mbstring 或 symfony/string 包代替。
+
+    数据库层的 UTF-8
+        如果你的 PHP 脚本访问 MySQL，即使你遵循上述所有的注意事项，你的字符串也有可能以非 UTF-8 字符串的形式存储在数据库中。
+
+        要想确保你的从 PHP 到 MySQL 的字符串是 UTF-8，确保你的数据库和表都设置为 utf8mb4 字符集和排序规则，并且在 PDO 连接字符串 中使用
+        utf8mb4 字符集。参见下面的示例代码。这一点至关重要。
+
+        请注意，你必须使用 utf8mb4 字符集来完全的支持 UTF-8，而不是 utf8 字符集！具体原因请参阅 进一步阅读。
+
+    浏览器层的 UTF-8
+        使用 mb_http_output() 函数来确保 PHP 脚本将 UTF-8 字符串输出到浏览器。然后浏览器将需要被 HTTP 响应告知这个页面应该被视为
+        UTF-8。今天，在 HTTP 响应头中设置字符集是很常见的，如下所示：
+
+        <?php
+        header('Content-Type: text/html; charset=UTF-8')
+
+        历史性的做法是在页面的 <head> 标签中包含字符集 <meta> 标签。
+
+        <?php
+        // Tell PHP that we're using UTF-8 strings until the end of the script
+        mb_internal_encoding('UTF-8');
+        $utf_set = ini_set('default_charset', 'utf-8');
+        if (!$utf_set) {
+            throw new Exception('could not set default_charset to utf-8, please ensure it\'s set on your system!');
+        }
+
+        // Tell PHP that we'll be outputting UTF-8 to the browser
+        mb_http_output('UTF-8');
+
+        // Our UTF-8 test string
+        $string = 'Êl síla erin lû e-govaned vîn.';
+
+        // Transform the string in some way with a multibyte function
+        // Note how we cut the string at a non-Ascii character for demonstration purposes
+        $string = mb_substr($string, 0, 15);
+
+        // Connect to a database to store the transformed string
+        // See the PDO example in this document for more information
+        // Note the `charset=utf8mb4` in the Data Source Name (DSN)
+        $link = new PDO(
+            'mysql:host=your-hostname;dbname=your-db;charset=utf8mb4',
+            'your-username',
+            'your-password',
+            array(
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_PERSISTENT => false
+            )
+        );
+
+        // Store our transformed string as UTF-8 in our database
+        // Your DB and tables are in the utf8mb4 character set and collation, right?
+        $handle = $link->prepare('insert into ElvishSentences (Id, Body, Priority) values (default, :body, :priority)');
+        $handle->bindParam(':body', $string, PDO::PARAM_STR);
+        $priority = 45;
+        $handle->bindParam(':priority', $priority, PDO::PARAM_INT); // explicitly tell pdo to expect an int
+        $handle->execute();
+
+        // Retrieve the string we just stored to prove it was stored correctly
+        $handle = $link->prepare('select * from ElvishSentences where Id = :id');
+        $id = 7;
+        $handle->bindParam(':id', $id, PDO::PARAM_INT);
+        $handle->execute();
+
+        // Store the result into an object that we'll output later in our HTML
+        // This object won't kill your memory because it fetches the data Just-In-Time to
+        $result = $handle->fetchAll(\PDO::FETCH_OBJ);
+
+        // An example wrapper to allow you to escape data to html
+        function escape_to_html($dirty){
+            echo htmlspecialchars($dirty, ENT_QUOTES, 'UTF-8');
+        }
+
+        header('Content-Type: text/html; charset=UTF-8'); // Unnecessary if your default_charset is set to utf-8 already
+        ?><!doctype html>
+        <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>UTF-8 test page</title>
+            </head>
+            <body>
+                <?php
+                foreach($result as $row){
+                    escape_to_html($row->Body);  // This should correctly output our transformed UTF-8 string to the browser
+                }
+                ?>
+            </body>
+        </html>
+
+    进一步的阅读
+        PHP 手册：字符运算符
+        PHP 手册：字符函数
+            strpos()
+            strlen()
+            substr()
+        PHP 手册：多字节字符串函数
+            mb_strpos()
+            mb_strlen()
+            mb_substr()
+            mb_internal_encoding()
+            mb_http_output()
+            htmlentities()
+            htmlspecialchars()
+        Stack Overflow：是什么因素导致 PHP 不兼容 unicode？
+        Stack Overflow：PHP 和 MySQL 中对国际字符串的最佳实践
+        如何在 MySQL 数据库中支持完整的 Unicode
+        用 Portable UTF-8 将 Unicode 引入 PHP
+        Stack Overflow: DOMDocument loadHTML 不正确的编码 UTF-8
+
+国际化（i18n）和本地化（l10n）
+    新手的免责声明：i18n 和 l10n 是 numeronym，是一种用数字缩写单词的缩写 —— 在我们的例子中，国际化变成了 i18n，本地化变成了 l10n。
+    个人补充：国际化的英文单词 internationalization 中，开头的 i 和结尾的 n 之间，刚好 18 个单词，所以缩写为 i18n。同理，本地化就被缩写
+    为 l10n 了。
+
+    首先，我们需要定义这两个相似的概念和其他相关的东西：
+        国际化是指组织你的代码，使其能够适应不同的语言或区域，而无需重构。这个动作通常只做一次 —— 最好是在项目开始的时候，否则你可能需要在源
+        代码中做一些巨大的改变!
+
+        本地化发生在你根据之前所做的 i18n 工作，通过翻译内容来调整界面（主要是）时。通常在需要支持新语言或区域时完成，并在添加新的接口片段时
+        进行更新，因为它们需要在所有受支持的语言中可用。
+
+        复数化定义了在不同语言之间互操作包含数字和计数器的字符串时所需的规则。例如，在英语中，当你只有一个项目时，它是单数，与之不同的词被称
+        为复数；在这种语言中，复数是通过在一些单词后面加一个 S 来表示的，并且有时会改变它的一部分。在其他语言中，如俄语或塞尔维亚语，除了单
+        数外有两种复数形式 —— 你甚至可以找到总共有四种、五种或六种（复数）形式的语言，比如斯洛文尼亚语、爱尔兰语或阿拉伯语。
+
+    常见的实现方法
+        国际化 PHP 软件最简单的方法是使用数组文件并且在模板中使用这些字符串，例如 <h1><?=$TRANS['title_about_page']?></h1>。然而，这
+        种方式对于严谨的项目来说是不推荐的，因为一路上它会造成一些维护问题 —— 有些问题可能在一开始就会出现，比如复数化。所以，如果你的项目将
+        包含超过几个页面，请不要尝试这样做。
+
+        最经典的且经常被用作 i18n 和 l10n 的参考的方法是一种名为 gettext 的 Unix 工具。它可以追溯到 1995 年并且现在仍然是翻译软件的一个
+        完整实现。运行起来是很容易的，同时还拥有强大的支持工具。我们将在这里讨论的是 Gettext。此外，为了帮助你避免命令行混乱，我们将提供一个
+        很棒的 GUI 应用程序，可以用来轻松地更新 l10n 源。
+
+    剩下的内容暂时不翻译了，有需要时在去翻译。
